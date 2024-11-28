@@ -17,60 +17,45 @@ void main() {
     setUp(() async {
       methodChannelConnectivity = MethodChannelConnectivity();
 
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        methodChannelConnectivity.methodChannel,
-        (MethodCall methodCall) async {
-          log.add(methodCall);
-          switch (methodCall.method) {
-            case 'check':
-              // Simulate returning a list of string of connectivity statuses
-              return ['wifi', 'mobile'];
-            default:
-              return null;
-          }
-        },
-      );
+      methodChannelConnectivity.methodChannel
+          .setMockMethodCallHandler((MethodCall methodCall) async {
+        log.add(methodCall);
+        switch (methodCall.method) {
+          case 'check':
+            return 'wifi';
+          default:
+            return null;
+        }
+      });
       log.clear();
-
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        MethodChannel(methodChannelConnectivity.eventChannel.name),
-        (MethodCall methodCall) async {
-          switch (methodCall.method) {
-            case 'listen':
-              // Simulate returning a comma-separated string of connectivity statuses
-              await TestDefaultBinaryMessengerBinding
-                  .instance.defaultBinaryMessenger
-                  .handlePlatformMessage(
-                methodChannelConnectivity.eventChannel.name,
-                methodChannelConnectivity.eventChannel.codec
-                    .encodeSuccessEnvelope(['wifi', 'mobile']),
-                (_) {},
-              );
-              break;
-            case 'cancel':
-            default:
-              return null;
-          }
-          return null;
-        },
-      );
+      MethodChannel(methodChannelConnectivity.eventChannel.name)
+          .setMockMethodCallHandler((MethodCall methodCall) async {
+        switch (methodCall.method) {
+          case 'listen':
+            await ServicesBinding.instance.defaultBinaryMessenger
+                .handlePlatformMessage(
+              methodChannelConnectivity.eventChannel.name,
+              methodChannelConnectivity.eventChannel.codec
+                  .encodeSuccessEnvelope('wifi'),
+              (_) {},
+            );
+            break;
+          case 'cancel':
+          default:
+            return null;
+        }
+      });
     });
 
-    // Test adjusted to handle multiple connectivity types
     test('onConnectivityChanged', () async {
       final result =
           await methodChannelConnectivity.onConnectivityChanged.first;
-      expect(result,
-          containsAll([ConnectivityResult.wifi, ConnectivityResult.mobile]));
+      expect(result, ConnectivityResult.wifi);
     });
 
-    // Test adjusted to handle multiple connectivity types
     test('checkConnectivity', () async {
       final result = await methodChannelConnectivity.checkConnectivity();
-      expect(result,
-          containsAll([ConnectivityResult.wifi, ConnectivityResult.mobile]));
+      expect(result, ConnectivityResult.wifi);
       expect(
         log,
         <Matcher>[

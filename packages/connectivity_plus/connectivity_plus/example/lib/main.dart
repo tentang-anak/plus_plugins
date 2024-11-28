@@ -24,8 +24,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color(0x9f4376f8),
+        primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
@@ -38,13 +37,13 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<ConnectivityResult> _connectionStatus = [ConnectivityResult.none];
+  ConnectivityResult _connectionStatus = ConnectivityResult.none;
   final Connectivity _connectivity = Connectivity();
-  late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   @override
   void initState() {
@@ -63,7 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initConnectivity() async {
-    late List<ConnectivityResult> result;
+    late ConnectivityResult result;
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       result = await _connectivity.checkConnectivity();
@@ -82,44 +81,20 @@ class _MyHomePageState extends State<MyHomePage> {
     return _updateConnectionStatus(result);
   }
 
-  Future<void> _updateConnectionStatus(List<ConnectivityResult> result) async {
+  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
     setState(() {
       _connectionStatus = result;
     });
-    // ignore: avoid_print
-    print('Connectivity changed: $_connectionStatus');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Connectivity Plus Example'),
-        elevation: 4,
+        title: const Text('Connectivity example app'),
       ),
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Spacer(flex: 2),
-          Text(
-            'Active connection types:',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const Spacer(),
-          ListView(
-            shrinkWrap: true,
-            children: List.generate(
-                _connectionStatus.length,
-                (index) => Center(
-                      child: Text(
-                        _connectionStatus[index].toString(),
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                    )),
-          ),
-          const Spacer(flex: 2),
-        ],
-      ),
+      body: Center(
+          child: Text('Connection Status: ${_connectionStatus.toString()}')),
     );
   }
 }
